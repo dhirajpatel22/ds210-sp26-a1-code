@@ -64,10 +64,33 @@ impl<T> SlowVec<T> {
     }
 
     // Student 2: Provide your solution here
-    pub fn remove(&mut self, i: usize) {
-        todo!("Student 2 should implement this");
-    }
-}
+    pub fn remove(&mut self, i: usize) {  
+        let n = self.fixed.len();
+        assert!(i < n);
+        let mut tmp = FixedSizeArray::allocate(n-1);
+        let mut tmp_i = 0;
+        
+        for old_i in 0..n {
+            if old_i == i {
+                continue;
+            }
+            let element = self.fixed.move_out(old_i);
+            tmp.put(element, tmp_i);
+            tmp_i += 1;
+        }
+             
+        self.fixed = tmp;
+
+        // DONE Create a new FixedSizeArray of a different length
+        //should be done via self.len and self.clear
+        // If removing, length should be old length - 1 d
+        // Look at the code in `lib.rs`, is there some function
+        // that can tell us what the old length is?
+        // loop over self.fixed and move over its elements to tmp
+        // skip the one that should be removed (in case of remove)
+        // get rid of the old fixed field and replace it with tmp!
+        }
+    }   
 
 
 // This allows us to print the SlowVec using println!().
