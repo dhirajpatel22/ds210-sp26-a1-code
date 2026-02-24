@@ -74,6 +74,21 @@ fn slow_vec_remove() {
     println!("{}", slow_vec3);  // should print SlowVec(Fixed[])
     println!("---------------------");
     println!("");
+
+    // Create a new FixedSizeArray of a different length
+// If pushing, length should be old length + 1
+// If removing, length should be old length - 1
+// Look at the code in `lib.rs`, is there some function
+// that can tell us what the old length is?
+//let tmp = FixedSizeArray::allocate(<<<<new length>>>>);
+
+// loop over self.fixed and move over its elements to tmp
+// either skip the one that should be removed (in case of remove)
+// or add the new element to the end of tmp (in case of push)
+//...
+
+// get rid of the old fixed field and replace it with tmp!
+//self.fixed = tmp;
 }
 
 fn main() {
