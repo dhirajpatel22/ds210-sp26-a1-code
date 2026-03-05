@@ -81,25 +81,40 @@ impl<T> FastVec<T> {
         if self.len == self.capacity {
             //todo!("implement growing the vector by doubling the size!");
         
-        let size_of_t = size_of::<T>();
-        let ptr2: *mut T = MALLOC.malloc(2*size_of_t) as *mut T;
+            let size_of_t = size_of::<T>(); 
+            let ptr_to_data_2: *mut T = MALLOC.malloc(2*size_of_t) as *mut T; //thats solid
 
-        unsafe{
-            for i 0..self.len {
-                let ptr = self.ptr_to_data.add(i);
-                ptr::read(ptr);
-                ptr::write(ptr2, ptr);
+            unsafe{
+                for i in 0..(self.len+1) {
+                    let iterative_ptr= self.ptr_to_data.add(i);
+                    let read_elements = ptr::read(iterative_ptr);
+                    ptr::write(ptr_to_data_2, read_elements); // do i need to specify the destination more specifically? like exact plaace? 
         }
-            self.len =
-            self.capacity = 
+            //ptr::write() = self.ptr_to_data.add(i);
+            MALLOC.free(self.ptr_to_data as *mut u8);
             // Hint: Use MALLOC.malloc to allocate new memory of twice the size. DONE
             // Hint: Move over all the elements from the previous pointer to the 
             // new pointer using ptr::read and ptr::write Hint: Do not forget to 
             // write the new element using ptr::write and to update self.ptr_to_data, 
             // self.len, and self.capacity.
 
-        } else {
-            //todo!("implement pushing t directly since the vector still has capacity!");
+            // 2. In push(): You should free the memory of old pointer after malloc a new one and copy the old
+            // values to the new one. Take a look at clear() of how to do that.
+
+        }
+            self.ptr_to_data = ptr_to_data_2;
+            self.len = self.len + 1;
+            self.capacity =  self.capacity * 2;
+            }   
+            
+        else {
+            unsafe{
+                for i in 0..(self.len+1) {
+                    let iterative_ptr= self.ptr_to_data.add(i);
+                    let read_elements = ptr::read(iterative_ptr);
+                    ptr::write(self.ptr_to_data, read_elements);
+                }
+            }
         }
     }
 
