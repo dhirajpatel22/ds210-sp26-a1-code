@@ -78,6 +78,7 @@ impl<T> FastVec<T> {
                     let read_elements = ptr::read(iterative_ptr);
                     ptr::write(ptr_to_data_2, read_elements); // do i need to specify the destination more specifically? like exact plaace? 
         }
+            }
             //ptr::write() = self.ptr_to_data.add(i);
             MALLOC.free(self.ptr_to_data as *mut u8);
             // Hint: Use MALLOC.malloc to allocate new memory of twice the size. DONE
@@ -89,9 +90,11 @@ impl<T> FastVec<T> {
             // 2. In push(): You should free the memory of old pointer after malloc a new one and copy the old
             // values to the new one. Take a look at clear() of how to do that.
 
-        }
+            // let dereferenced_vector = unsafe { &*ptr_to_data_2 };
+            // self.len = dereferenced_vector.len();
+            self.len = self.len +1; 
             self.ptr_to_data = ptr_to_data_2;
-            self.len = self.len + 1;
+             //+1 is wrong!!!!!!!!!!!! - should be the len of vec
             self.capacity =  self.capacity * 2;
             }   
             
