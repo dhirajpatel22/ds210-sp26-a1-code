@@ -61,19 +61,7 @@ impl<T> FastVec<T> {
     // Student 1 and Student 2 should implement this together
     // Use the project handout as a guide for this part!
     pub fn get(&self, i: usize) -> &T {
-        if i >= self.len {
-            panic!("FastVec: get out of bounds");
-        }
-        unsafe {
-            &*self.ptr_to_data.add(i)
-        }
-        // Start by assuming that the vector already has enough elements pushed to it. How would you use the pointer operations 
-        // described in the background above to retrieve the element at index i from self.ptr_to_data?
-        // Hint: You only want to get the data, you do not want to move out or destroy it. Users of your vector should be able 
-        // to get the data again in the future if they want to. Consider using &*. Hint: You will need to use unsafe and you 
-        // will need to use self.ptr_to_data.add([your index]).
-
-
+        todo!("implement get!");
     }
 
     // Student 2 should implement this.
@@ -120,7 +108,19 @@ impl<T> FastVec<T> {
 
     // Student 1 should implement this.
     pub fn remove(&mut self, i: usize) {
-        todo!("implement remove");
+        if i >= self.len {
+            panic!("FastVec: remove out of bounds");
+        }
+        unsafe {
+            self.ptr_to_data.add(i).read();
+            for j in i+1..self.len {
+                let element = self.ptr_to_data.add(j).read();
+                let ptr: *mut T = self.ptr_to_data.add(j-1);
+                ptr.write(element);
+            }
+        }
+        self.len -= 1;
+
     }
 
     // This appears correct but with further testing, you will notice it has a bug!
