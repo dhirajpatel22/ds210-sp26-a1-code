@@ -46,10 +46,18 @@ impl ChatbotV3 {
     pub fn get_history(&self, username: String) -> Vec<String> {
         // Retrieve the chat session for this user from the HashMap
         if let Some(chat) = self.username.get(&username) {
-            // Get the session and history from the chat
+            // Get the session using the session function from kalosm
             if let Ok(session) = chat.session() {
-                // Return the chat history as a vector of strings
-                return session.history().iter().map(|msg| format!("{:?}", msg)).collect();
+                // Get the chat history and return it as a vector of strings
+                let history = session.history();
+                println!("{:?}", history);
+                
+                // Return the conversation history as Vec<String>, excluding system prompts
+                return history
+                    .iter()
+                    .filter(|msg| !matches!(msg.role(), kalosm::language::MessageType::SystemPrompt))
+                    .map(|msg| msg.content().to_string())
+                    .collect();
             }
         }
         Vec::new()
