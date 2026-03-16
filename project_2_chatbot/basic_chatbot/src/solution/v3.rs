@@ -36,8 +36,7 @@ impl ChatbotV3 {
                 .chat()
                 .with_system_prompt("The assistant will act like a pirate")
         });
-
-        // Add the message to the correct chat session and return the assistant's response.
+        
         let response = chat_session.add_message(message).await.unwrap();
         return response;
     }
