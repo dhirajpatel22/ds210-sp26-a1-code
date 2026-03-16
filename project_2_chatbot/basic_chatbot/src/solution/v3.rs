@@ -28,14 +28,18 @@ impl ChatbotV3 {
         }; 
     }
 
-    #[allow(dead_code)]
     #[allow(unused_variables)]
+    #[allow(dead_code)]
     pub async fn chat_with_user(&mut self, username: String, message: String) -> String {
-        // Add your code for chatting with the agent while keeping conversation history here.
-        // Notice, you are given both the `message` and also the `username`.
-        // Use this information to select the correct chat session for that user and keep it
-        // separated from the sessions of other users.
-        return String::from("Hello, I am not a bot (yet)!");
+        let chat_session = self.username.entry(username.clone()).or_insert_with(|| {
+            self.model
+                .chat()
+                .with_system_prompt("The assistant will act like a pirate")
+        });
+
+        // Add the message to the correct chat session and return the assistant's response.
+        let response = chat_session.add_message(message).await.unwrap();
+        return response;
     }
 
     #[allow(dead_code)] //std2
