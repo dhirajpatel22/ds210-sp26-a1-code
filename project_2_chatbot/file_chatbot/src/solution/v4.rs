@@ -27,17 +27,31 @@ impl ChatbotV4 {
         return String::from("Hello, I am not a bot (yet)!");
     }
 
-    pub fn get_history(&self, username: String) -> Vec<String> {
+    pub async fn get_history(&self, username: String) -> Vec<String> { //changed pub fn to pub ASYNC fn
         let filename = &format!("{}.txt", username);
 
         match file_library::load_chat_session_from_file(&filename) {
             None => {
                 return Vec::new();
             },
-            Some(session) => {
-                // TODO: what should happen here?
-                return Vec::new();
+            Some(session) => { //should use filename somewhere? 
+            // TODO: what should happen here?
+                let model = Llama::new_chat().await.unwrap();
+                let mut chat = model.chat();
+                // Add a message to the chat history
+                chat("Hello, world!").to_std_out().await.unwrap();
+                // Get the chat session
+                let session = chat.session().unwrap();
+                // Get the chat history
+                let history = session.history();
+                println!("{:?}", history);
+
+            //reuse v3 basic_chatbot OR do it with the code from rust book?
+
+                return Vec::new(); //given by kinan
             }
         }
     }
 }
+
+//probably the get_history part is wrong
