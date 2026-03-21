@@ -24,9 +24,24 @@ pub fn save_chat_session_to_file(filename: &str, session: &LlamaChatSession) {
     }
 }
 
-// Implement this
+// Std2 Implement this
 pub fn load_chat_session_from_file(filename: &str) -> Option<LlamaChatSession> {
+        
+    let data: Vec<u8> = match fs::read(filename) {
+        Ok(bytes) => bytes,
+        Err(_) => {
+            println!("No file found");
+            return None;
+        }
+    };
+        match LlamaChatSession::from_bytes(&data) {
+        Ok(session) => Some(session),
+        Err(_) => {
+            println!("Could not load chat session");
+            return None;
+        }
+    }
+}
     // look at fs::read(...)
     // also look at LlamaChatSession::from_bytes(...)
-    unimplemented!("Loading chat session from file {filename}");
-}
+    //unimplemented!("Loading chat session from file {filename}");
