@@ -35,7 +35,8 @@ pub fn load_chat_session_from_file(filename: &str) -> Option<LlamaChatSession> {
         }
     };
         match LlamaChatSession::from_bytes(&data) {
-        Ok(session) => Some(session),
+        Ok(session) => 
+            return Some(session),
         Err(_) => {
             println!("Could not load chat session");
             return None;

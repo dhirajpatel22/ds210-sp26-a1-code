@@ -41,21 +41,18 @@ impl ChatbotV4 {
         return response;
     }
 
-    pub fn get_history(&self, username: String) -> Vec<String> { 
+    pub fn get_history(&self, username: String) -> Vec<String> {
         let filename = &format!("{}.txt", username);
-        match file_library::load_chat_session_from_file(&filename) {
-            None => {
-                return Vec::new();
-            },
+
+        match file_library::load_chat_session_from_file(filename) {
+            None => Vec::new(),
             Some(session) => {
-            // TODO: what should happen here? - kinan
-            //should I use filename/session somewhere?
-            let history = session.history();
-            let history_string = format!("{:?}", history);
-
-            //reuse v3 basic_chatbot OR do it with the code from rust book?
-
-                return vec![history_string]; //given by kinan
+                let history = session.history();
+                history
+                    .iter()
+                    .filter(|msg| !matches!(msg.role(), kalosm::language::MessageType::SystemPrompt))
+                    .map(|msg| msg.content().to_string())
+                    .collect()
             }
         }
     }
