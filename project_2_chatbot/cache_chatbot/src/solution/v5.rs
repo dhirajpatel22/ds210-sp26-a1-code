@@ -37,21 +37,47 @@ impl ChatbotV5 {
 
     pub fn get_history(&mut self, username: String) -> Vec<String> {
         let filename = &format!("{}.txt", username);
-        let cached_chat = self.cache.get_chat(&username);
+        let cached_chat = self.cache.get_chat(&username); //get_chat updates this coversation to be most recent
 
         match cached_chat {
             None => {
                 println!("get_history: {username} is not in the cache!");
-                // TODO: The cache does not have the chat. What should you do?
-                // Your code goes here.
-                return Vec::new();
+                // load session from file if it exists
+                if let Some(session) = file_library::load_chat_session_from_file(&filename) {
+                    let mut chat = self.model.chat().with_session(session);
+                    self.cache.insert_chat(username.clone(), chat);
+                    
+                    // get the cached chat to extract history
+                    if let Some(chat_session) = self.cache.get_chat(&username) {
+                        if let Ok(session) = chat_session.session() {
+                            let history = session.history();
+                            return history
+                                .iter()
+                                .filter(|msg| !matches!(msg.role(), kalosm::language::MessageType::SystemPrompt))
+                                .map(|msg| msg.content().to_string())
+                                .collect();
+                        }
+                    }
+                }
+                Vec::new()
             }
             Some(chat_session) => {
                 println!("get_history: {username} is in the cache! Nice!");
                 // TODO: The cache has this chat. What should you do?
                 // Your code goes here.
-                return Vec::new();
+                
+                //get the history from the cache
+                if let Ok(session) = chat_session.session() {
+                    let history = session.history();
+                    println!("{:?}", history);
 
+                    return history
+                        .iter()
+                        .filter(|msg| !matches!(msg.role(), kalosm::language::MessageType::SystemPrompt))
+                        .map(|msg| msg.content().to_string())
+                        .collect();
+                }
+                Vec::new() 
             }
         }
     }
