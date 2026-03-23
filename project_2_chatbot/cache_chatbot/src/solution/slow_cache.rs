@@ -35,9 +35,14 @@ impl<V> Cache<V> {
         // TODO: your code goes here.
         // println!("Removing least recently used");
     }
+    //std2
     fn mark_as_most_recently_used(&mut self, username: String) {
         // TODO: your code goes here.
         // println!("Marking {username} as most recently used");
+        if let Some(i) = self.usage_history.iter().position(|u| u == &username) {
+            self.usage_history.remove(i);
+        }
+        self.usage_history.push(username);
     }
 
     // Reading from the cache:
