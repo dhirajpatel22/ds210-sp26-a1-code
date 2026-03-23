@@ -15,7 +15,8 @@ impl ChatbotV5 {
             cache: Cache::new(3),
         };
     }
-
+    
+    // Std2
     pub async fn chat_with_user(&mut self, username: String, message: String) -> String {
         let filename = &format!("{}.txt", username);
         let cached_chat = self.cache.get_chat(&username);
@@ -23,13 +24,50 @@ impl ChatbotV5 {
         match cached_chat {
             None => {
                 println!("chat_with_user: {username} is not in the cache!");
-                // The cache does not have the chat. What should you do?
-                return String::from("Hello, I am not a bot (yet)!");
+                // Build a chat session and restore from disk when possible.
+                let mut chat_session: Chat<Llama> = self
+                    .model
+                    .chat()
+                    .with_system_prompt("The assistant will act like a pirate");
+
+                if let Ok(bytes) = std::fs::read(filename) {
+                    if let Ok(existing_session) = LlamaChatSession::from_bytes(&bytes) {
+                        chat_session = chat_session.with_session(existing_session);
+                    }
+                }
+
+                let response = chat_session.add_message(message).await.unwrap_or_else(|err| {
+                    eprintln!("chat_with_user: failed to get response: {err}");
+                    String::from("Sorry, I could not generate a response.")
+                });
+
+                if let Ok(session) = chat_session.session() {
+                    if let Ok(bytes) = session.to_bytes() {
+                        if let Err(err) = std::fs::write(filename, bytes) {
+                            eprintln!("chat_with_user: failed to save session file {filename}: {err}");
+                        }
+                    }
+                }
+
+                self.cache.insert_chat(username, chat_session);
+                return response;
             }
             Some(chat_session) => {
                 println!("chat_with_user: {username} is in the cache! Nice!");
-                // The cache has this chat. What should you do?
-                return String::from("Hello, I am not a bot (yet)!");
+                let response = chat_session.add_message(message).await.unwrap_or_else(|err| {
+                    eprintln!("chat_with_user: failed to get response: {err}");
+                    String::from("Sorry, I could not generate a response.")
+                });
+
+                if let Ok(session) = chat_session.session() {
+                    if let Ok(bytes) = session.to_bytes() {
+                        if let Err(err) = std::fs::write(filename, bytes) {
+                            eprintln!("chat_with_user: failed to save session file {filename}: {err}");
+                        }
+                    }
+                }
+
+                return response;
 
             }
         }
