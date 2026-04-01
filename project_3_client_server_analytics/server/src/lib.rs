@@ -32,11 +32,11 @@ impl RPCInterface for AnalyticsServer {
     }
      
 
-    /*
+    
     async fn fast_rpc(self, _context: tarpc::context::Context, query: analytics_lib::query::Query) -> analytics_lib::dataset::Dataset {
         return solution::fast_rpc(self.dataset, query);
     }
-     */
+    
 }
 
 // Do not modify this code.
