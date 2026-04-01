@@ -9,7 +9,6 @@ use analytics_lib::dataset::{ColumnType, Dataset, Row, Value};
 fn test_aggregate_average_grade_per_section() {
     // Construct the data
     let mut data = HashMap::new();
-    
     let mut a1 = Dataset::new(vec![
         (String::from("name"), ColumnType::String),
         (String::from("section"), ColumnType::String),

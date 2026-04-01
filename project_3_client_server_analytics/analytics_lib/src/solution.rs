@@ -2,16 +2,89 @@ use std::collections::HashMap;
 use crate::dataset::{ColumnType, Dataset, Value, Row};
 use crate::query::{Aggregation, Condition, Query};
 
+fn row_matches_filter(dataset: &Dataset, row: &Row, condition: &Condition) -> bool {
+    match condition {
+        Condition::Equal(column_name, value) => {
+            let index = dataset.column_index(column_name);
+            row.get_value(index) == value
+        }
+        Condition::Not(inner) => !row_matches_filter(dataset, row, inner),
+        Condition::And(left, right) => {
+            row_matches_filter(dataset, row, left) && row_matches_filter(dataset, row, right)
+        }
+        Condition::Or(left, right) => {
+            row_matches_filter(dataset, row, left) || row_matches_filter(dataset, row, right)
+        }
+    }
+}
+
 pub fn filter_dataset(dataset: &Dataset, filter: &Condition) -> Dataset {
-    todo!("Implement this!");
+    let mut result = Dataset::new(dataset.columns().clone());
+
+    for row in dataset.iter() {
+        if row_matches_filter(dataset, row, filter) {
+            result.add_row(row.clone());
+        }
+    }
+
+    return result;
 }
 
 pub fn group_by_dataset(dataset: Dataset, group_by_column: &String) -> HashMap<Value, Dataset> {
-    todo!("Implement this!");
+    let mut map: HashMap<Value, Dataset> = HashMap::new();
+    let index = dataset.column_index(group_by_column);
+
+    for row in dataset.iter(){
+        let key = row.get_value(index);
+
+        map.entry(key.clone())
+            .or_insert_with(|| Dataset::new(dataset.columns().clone()))
+            .add_row(row.clone());
+    }
+    
+
+    return map;
 }
 
 pub fn aggregate_dataset(dataset: HashMap<Value, Dataset>, aggregation: &Aggregation) -> HashMap<Value, Value> {
-    todo!("Implement this!");
+    let mut result = HashMap::new();
+    for (group_value, grouped_dataset) in dataset {
+        let value = match aggregation {
+            Aggregation::Count(_column_name) => Value::Integer(grouped_dataset.len() as i32),
+            Aggregation::Sum(column_name) => {
+                // Add up all values in the chosen column.
+                let index = grouped_dataset.column_index(column_name);
+                let mut sum = 0;
+
+                for row in grouped_dataset.iter() {
+                    match row.get_value(index) {
+                        Value::Integer(number) => sum += *number,
+                        Value::String(_) => panic!("sum can only be used on integer columns"),
+                    }
+                }
+
+                Value::Integer(sum)
+            }
+            Aggregation::Average(column_name) => {
+                // Average uses integer division in the tests.
+                let index = grouped_dataset.column_index(column_name);
+                let mut sum = 0;
+
+                for row in grouped_dataset.iter() {
+                    match row.get_value(index) {
+                        Value::Integer(number) => sum += *number,
+                        Value::String(_) => panic!("average can only be used on integer columns"),
+                    }
+                }
+
+                Value::Integer(sum / grouped_dataset.len() as i32)
+            }
+        };
+
+        result.insert(group_value, value);
+    }
+
+    return result;
 }
 
 pub fn compute_query_on_dataset(dataset: &Dataset, query: &Query) -> Dataset {

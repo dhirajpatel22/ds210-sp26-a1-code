@@ -10,7 +10,7 @@ pub mod solution;
 
 // This is the type that implements the generated World trait. It is the business logic
 // and is used to start the server.
-#[derive(Clone)]
+#[derive(Clone)] //add RPCInterface?
 pub struct AnalyticsServer {
     dataset: &'static Dataset,
 }
@@ -26,17 +26,16 @@ impl RPCInterface for AnalyticsServer {
         return solution::hello();
     }
 
-    /*
+    
     async fn slow_rpc(self, _context: tarpc::context::Context) -> analytics_lib::dataset::Dataset {
         return solution::slow_rpc(self.dataset);
     }
-     */
+    //uncommented
 
-    /*
     async fn fast_rpc(self, _context: tarpc::context::Context, query: analytics_lib::query::Query) -> analytics_lib::dataset::Dataset {
         return solution::fast_rpc(self.dataset, query);
     }
-     */
+    //uncommented
 }
 
 // Do not modify this code.

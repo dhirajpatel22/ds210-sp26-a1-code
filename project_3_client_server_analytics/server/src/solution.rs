@@ -1,4 +1,5 @@
 use analytics_lib::{dataset::Dataset, query::Query};
+use analytics_lib::{solution::compute_query_on_dataset}; //my addition - mistake?
 
 pub fn hello() -> String {
     println!("hello called");
@@ -7,10 +8,12 @@ pub fn hello() -> String {
 
 pub fn slow_rpc(input_dataset: &Dataset) -> Dataset {
     println!("slow_rpc called");
-    todo!("Implement this");
+    return input_dataset.clone(); //should it stay this way????
+    //todo!("Implement this");
 }
 
 pub fn fast_rpc(input_dataset: &Dataset, query: Query) -> Dataset {
     println!("fast_rpc called");
-    todo!("Implement this");
+    return compute_query_on_dataset(input_dataset, &query); //this is dhiraj but im doing it for fun
+    //todo!("Implement this");
 }
