@@ -40,7 +40,7 @@ impl Row {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Dataset {
     columns: Vec<(String, ColumnType)>,
     rows: Vec<Row>,
