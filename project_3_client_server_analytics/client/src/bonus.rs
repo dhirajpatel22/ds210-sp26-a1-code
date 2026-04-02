@@ -1,4 +1,5 @@
 extern crate tarpc;
+extern crate querystring; //delete? i also edited cargo toml
 
 use std::time::Instant;
 use std::io::BufRead;
@@ -8,7 +9,12 @@ use client::{start_client, solution};
 
 // Your solution goes here.
 fn parse_query_from_string(input: String) -> Query {
-    todo!("Implement this");
+    
+let ref_to_input = &input;
+
+let querified = format!("{:?}", querystring::querify(ref_to_input));
+let query = Query::from(querified);
+return query;
 }
 
 // Each defined rpc generates an async fn that serves the RPC

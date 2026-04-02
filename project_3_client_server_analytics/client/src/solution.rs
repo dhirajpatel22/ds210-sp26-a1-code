@@ -10,11 +10,7 @@ pub async fn run_hello(rpc_client: &RPCInterfaceClient) {
 pub async fn run_slow_rpc(rpc_client: &RPCInterfaceClient, query: Query) -> Dataset {
     println!("using slow_rpc");
     let result = rpc_client.slow_rpc(Context::current()).await.unwrap();
-    // println!("The server says: `{}`", result); commented out cuz dataset is also printed in main (it was being printed 2)
     return compute_query_on_dataset(&result, &query);
-
-    // What should you do to the dataset?
-    // Hint: you have not used `query`, maybe you need to use it somehow?
 }
 
 pub async fn run_fast_rpc(rpc_client: &RPCInterfaceClient, query: Query) -> Dataset {
@@ -23,5 +19,4 @@ pub async fn run_fast_rpc(rpc_client: &RPCInterfaceClient, query: Query) -> Data
     // You should call fast_rpc here and not slow_rpc.
     let result = rpc_client.fast_rpc(Context::current(), query).await.unwrap();
     return result;
-    //todo!("Implement this");
 }
