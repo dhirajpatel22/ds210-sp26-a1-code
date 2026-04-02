@@ -9,7 +9,7 @@ pub fn hello() -> String {
 pub fn slow_rpc(input_dataset: &Dataset) -> Dataset {
     println!("slow_rpc called");
     return input_dataset.clone(); //should it stay this way????
-    //todo!("Implement this");
+    
 }
 
 pub fn fast_rpc(input_dataset: &Dataset, query: Query) -> Dataset {

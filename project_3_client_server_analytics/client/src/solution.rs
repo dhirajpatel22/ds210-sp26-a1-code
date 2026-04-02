@@ -21,7 +21,7 @@ pub async fn run_fast_rpc(rpc_client: &RPCInterfaceClient, query: Query) -> Data
     println!("using fast_rpc");
 
     // You should call fast_rpc here and not slow_rpc.
-    let result = rpc_client.fast_rpc(Context::current()).await.unwrap();
-    return &result;
-    todo!("Implement this");
+    let result = rpc_client.fast_rpc(Context::current(), query).await.unwrap();
+    return result;
+    //todo!("Implement this");
 }
