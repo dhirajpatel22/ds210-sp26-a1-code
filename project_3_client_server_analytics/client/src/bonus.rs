@@ -38,6 +38,7 @@ fn parse_query_from_string(input: String) -> Query {
 
     
     let count_split = right.split_once(" COUNT ");
+    let sum_split = right.split_once(" SUM ");
     //avoids duplicating code (no value yet)
     let group_by;
     let aggregate;
@@ -45,9 +46,10 @@ fn parse_query_from_string(input: String) -> Query {
     if let Some((g, c)) = count_split {
         group_by = g.trim().to_string();
         aggregate = Aggregation::Count(c.trim().to_string());
-    } 
-    else 
-    {
+    } else if let Some((g, s)) = sum_split {
+        group_by = g.trim().to_string();
+        aggregate = Aggregation::Sum(s.trim().to_string());
+    } else {
         let avg_split = right.split_once(" AVERAGE ").unwrap();
         group_by = avg_split.0.trim().to_string();
         aggregate = Aggregation::Average(avg_split.1.trim().to_string());
