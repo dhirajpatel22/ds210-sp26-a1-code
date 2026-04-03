@@ -9,6 +9,7 @@ use client::{start_client, solution};
 
 // Your solution goes here.
 fn parse_query_from_string(input: String) -> Query {
+    //prevent splitting inside parentheses 
     fn split_top_level<'a>(text: &'a str, delimiter: &str) -> Option<(&'a str, &'a str)> {
         let mut depth = 0;
         for (i, ch) in text.char_indices() {
@@ -29,6 +30,7 @@ fn parse_query_from_string(input: String) -> Query {
         None
     }
 
+    //check if text is wrapped in parentheses
     fn is_wrapped_in_parentheses(text: &str) -> bool {
         if !(text.starts_with('(') && text.ends_with(')')) {
             return false;
@@ -54,58 +56,63 @@ fn parse_query_from_string(input: String) -> Query {
         depth == 0
     }
 
+    //turn string into Value type
     fn parse_value(raw: &str) -> Value {
         if raw.starts_with('"') && raw.ends_with('"') && raw.len() >= 2 {
             Value::String(raw[1..raw.len() - 1].to_string())
         } else {
-            Value::Integer(raw.parse().expect("Invalid filter value"))
+            Value::Integer(raw.parse().expect("Invalid value"))
         }
     }
 
+    //create condition tree with recursion
     fn parse_condition(condition: &str) -> Condition {
         let condition = condition.trim();
 
-        if let Some((left, right)) = split_top_level(condition, " OR ") {
+        if let Some((left, right)) = split_top_level(condition, " OR ") { //try splitting on OR
             return Condition::Or(
                 Box::new(parse_condition(left)),
                 Box::new(parse_condition(right)),
             );
         }
 
-        if let Some((left, right)) = split_top_level(condition, " AND ") {
+        if let Some((left, right)) = split_top_level(condition, " AND ") { //try spliting on AND
             return Condition::And(
-                Box::new(parse_condition(left)),
-                Box::new(parse_condition(right)),
+                Box::new(parse_condition(left)), //recursively check left
+                Box::new(parse_condition(right)),//recursively check right
             );
         }
 
-        if let Some(rest) = condition.strip_prefix('!') {
+        if let Some(rest) = condition.strip_prefix('!') { //handles NOT
             return Condition::Not(Box::new(parse_condition(rest)));
         }
 
-        if is_wrapped_in_parentheses(condition) {
-            return parse_condition(&condition[1..condition.len() - 1]);
+        if is_wrapped_in_parentheses(condition) { //handles parentheses
+            return parse_condition(&condition[1..condition.len() - 1]); //strips parentheses and checks inside
         }
 
-        let (column, raw_value) = condition
+        let (column, raw_value) = condition   //handle ==
             .split_once("==")
-            .expect("Invalid condition: expected `column == value`");
-        Condition::Equal(column.trim().to_string(), parse_value(raw_value.trim()))
+            .expect("Invalid condition");
+        Condition::Equal(column.trim().to_string(), parse_value(raw_value.trim())) //create final condition
     }
 
     let trimmed = input.trim();
-    let (filter_prefix, right) = trimmed
+    //split into filter and group by
+    let (filter_prefix, right) = trimmed    
         .split_once(" GROUP BY ")
-        .expect("Invalid query: missing ` GROUP BY `");
+        .expect("Query is missing GROUP BY");
 
+    //parse filter 
     let filter_expression = filter_prefix
         .strip_prefix("FILTER ")
-        .expect("Invalid query: missing `FILTER ` prefix");
+        .expect("Query is missing FILTER");
     let filter = parse_condition(filter_expression);
 
+    //handle group by
     let parts: Vec<&str> = right.split_whitespace().collect();
     if parts.len() != 3 {
-        panic!("Invalid query: expected `GROUP BY <column> <aggregation> <column>`");
+        panic!("Query format should be GROUP BY <column> <aggregation> <column>");
     }
 
     let group_by = parts[0].to_string();
@@ -113,7 +120,7 @@ fn parse_query_from_string(input: String) -> Query {
         "COUNT" => Aggregation::Count(parts[2].to_string()),
         "SUM" => Aggregation::Sum(parts[2].to_string()),
         "AVERAGE" => Aggregation::Average(parts[2].to_string()),
-        _ => panic!("Invalid query: aggregation must be COUNT, SUM, or AVERAGE"),
+        _ => panic!("Aggregation should be COUNT, SUM, or AVERAGE"),
     };
 
     Query::new(filter, group_by, aggregate)
