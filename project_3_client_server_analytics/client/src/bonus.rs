@@ -9,51 +9,110 @@ use client::{start_client, solution};
 
 // Your solution goes here.
 fn parse_query_from_string(input: String) -> Query {
-    let group_split = input.split_once(" GROUP BY ").unwrap();
-    let left = group_split.0;
-    let right = group_split.1;
+    fn split_top_level<'a>(text: &'a str, delimiter: &str) -> Option<(&'a str, &'a str)> {
+        let bytes = text.as_bytes();
+        let delimiter_bytes = delimiter.as_bytes();
+        let mut depth = 0;
+        let mut i = 0;
 
-    //maybe add .expect for wrong format or some unwraps
-    //DEAR DHIRAJ IF I FORGET TO HANDLE WRONG FORMAT OF QUERY, ADD EXPECT OR HANDLE UNWRAPS HERE
-    // THIS MIGHT NOT BE NECESSARY, LETS ASK KINAN
-    // DO NOT COMMIT YET, MAYBE STASH
-    //the unwraps are wild - take care of them
+        while i + delimiter_bytes.len() <= bytes.len() {
+            match bytes[i] as char {
+                '(' => depth += 1,
+                ')' => depth -= 1,
+                _ => {}
+            }
 
-    // deletes FILTER, than the whitespaces
-    let filter_raw = left.trim_start_matches("FILTER ").trim(); 
-    let eq_split = filter_raw.split_once("==").unwrap();
-    let col = eq_split.0.trim();
-    let raw = eq_split.1.trim();
-
-    // ' is used for chars
-    let value = if raw.starts_with('"') && raw.ends_with('"') {
-        Value::String(raw.trim_matches('"').to_string())
-    } 
-    else 
-    {
-        // rust automatically knows to parse into an integer
-        Value::Integer(raw.parse().unwrap())
-    };
-    let filter = Condition::Equal(col.to_string(), value);
-
-    
-    let count_split = right.split_once(" COUNT ");
-    let sum_split = right.split_once(" SUM ");
-    //avoids duplicating code (no value yet)
-    let group_by;
-    let aggregate;
-
-    if let Some((g, c)) = count_split {
-        group_by = g.trim().to_string();
-        aggregate = Aggregation::Count(c.trim().to_string());
-    } else if let Some((g, s)) = sum_split {
-        group_by = g.trim().to_string();
-        aggregate = Aggregation::Sum(s.trim().to_string());
-    } else {
-        let avg_split = right.split_once(" AVERAGE ").unwrap();
-        group_by = avg_split.0.trim().to_string();
-        aggregate = Aggregation::Average(avg_split.1.trim().to_string());
+            if depth == 0 && &bytes[i..i + delimiter_bytes.len()] == delimiter_bytes {
+                return Some((&text[..i], &text[i + delimiter.len()..]));
+            }
+            i += 1;
+        }
+        None
     }
+
+    fn is_wrapped_in_parentheses(text: &str) -> bool {
+        if !(text.starts_with('(') && text.ends_with(')')) {
+            return false;
+        }
+
+        let mut depth = 0;
+        for (i, c) in text.chars().enumerate() {
+            match c {
+                '(' => depth += 1,
+                ')' => {
+                    depth -= 1;
+                    if depth == 0 && i != text.len() - 1 {
+                        return false;
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        depth == 0
+    }
+
+    fn parse_value(raw: &str) -> Value {
+        if raw.starts_with('"') && raw.ends_with('"') && raw.len() >= 2 {
+            Value::String(raw[1..raw.len() - 1].to_string())
+        } else {
+            Value::Integer(raw.parse().expect("Invalid filter value"))
+        }
+    }
+
+    fn parse_condition(condition: &str) -> Condition {
+        let condition = condition.trim();
+
+        if let Some((left, right)) = split_top_level(condition, " OR ") {
+            return Condition::Or(
+                Box::new(parse_condition(left)),
+                Box::new(parse_condition(right)),
+            );
+        }
+
+        if let Some((left, right)) = split_top_level(condition, " AND ") {
+            return Condition::And(
+                Box::new(parse_condition(left)),
+                Box::new(parse_condition(right)),
+            );
+        }
+
+        if let Some(rest) = condition.strip_prefix('!') {
+            return Condition::Not(Box::new(parse_condition(rest)));
+        }
+
+        if is_wrapped_in_parentheses(condition) {
+            return parse_condition(&condition[1..condition.len() - 1]);
+        }
+
+        let (column, raw_value) = condition
+            .split_once("==")
+            .expect("Invalid condition: expected `column == value`");
+        Condition::Equal(column.trim().to_string(), parse_value(raw_value.trim()))
+    }
+
+    let trimmed = input.trim();
+    let (filter_prefix, right) = trimmed
+        .split_once(" GROUP BY ")
+        .expect("Invalid query: missing ` GROUP BY `");
+
+    let filter_expression = filter_prefix
+        .strip_prefix("FILTER ")
+        .expect("Invalid query: missing `FILTER ` prefix");
+    let filter = parse_condition(filter_expression);
+
+    let parts: Vec<&str> = right.split_whitespace().collect();
+    if parts.len() != 3 {
+        panic!("Invalid query: expected `GROUP BY <column> <aggregation> <column>`");
+    }
+
+    let group_by = parts[0].to_string();
+    let aggregate = match parts[1] {
+        "COUNT" => Aggregation::Count(parts[2].to_string()),
+        "SUM" => Aggregation::Sum(parts[2].to_string()),
+        "AVERAGE" => Aggregation::Average(parts[2].to_string()),
+        _ => panic!("Invalid query: aggregation must be COUNT, SUM, or AVERAGE"),
+    };
 
     Query::new(filter, group_by, aggregate)
 
