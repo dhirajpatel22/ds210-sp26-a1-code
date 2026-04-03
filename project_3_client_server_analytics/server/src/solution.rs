@@ -13,7 +13,6 @@ pub fn slow_rpc(input_dataset: &Dataset) -> Dataset {
 }
 
 pub fn fast_rpc(input_dataset: &Dataset, query: Query) -> Dataset {
-    println!("fast_rpc called");
-    return compute_query_on_dataset(input_dataset, &query); //this is dhiraj but im doing it for fun
-    //todo!("Implement this");
+    let queried_dataset = compute_query_on_dataset(input_dataset, &query);
+    return queried_dataset;
 }
