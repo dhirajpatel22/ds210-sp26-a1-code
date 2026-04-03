@@ -10,22 +10,21 @@ use client::{start_client, solution};
 // Your solution goes here.
 fn parse_query_from_string(input: String) -> Query {
     fn split_top_level<'a>(text: &'a str, delimiter: &str) -> Option<(&'a str, &'a str)> {
-        let bytes = text.as_bytes();
-        let delimiter_bytes = delimiter.as_bytes();
         let mut depth = 0;
-        let mut i = 0;
-
-        while i + delimiter_bytes.len() <= bytes.len() {
-            match bytes[i] as char {
+        for (i, ch) in text.char_indices() {
+            match ch {
                 '(' => depth += 1,
-                ')' => depth -= 1,
+                ')' => {
+                    if depth > 0 {
+                        depth -= 1;
+                    }
+                }
                 _ => {}
             }
 
-            if depth == 0 && &bytes[i..i + delimiter_bytes.len()] == delimiter_bytes {
+            if depth == 0 && text[i..].starts_with(delimiter) {
                 return Some((&text[..i], &text[i + delimiter.len()..]));
             }
-            i += 1;
         }
         None
     }
@@ -36,12 +35,15 @@ fn parse_query_from_string(input: String) -> Query {
         }
 
         let mut depth = 0;
-        for (i, c) in text.chars().enumerate() {
+        for (i, c) in text.char_indices() {
             match c {
                 '(' => depth += 1,
                 ')' => {
+                    if depth == 0 {
+                        return false;
+                    }
                     depth -= 1;
-                    if depth == 0 && i != text.len() - 1 {
+                    if depth == 0 && i + c.len_utf8() != text.len() {
                         return false;
                     }
                 }
