@@ -17,22 +17,28 @@ fn parse_query_from_string(input: String) -> Query {
     //DEAR DHIRAJ IF I FORGET TO HANDLE WRONG FORMAT OF QUERY, ADD EXPECT OR HANDLE UNWRAPS HERE
     // THIS MIGHT NOT BE NECESSARY, LETS ASK KINAN
     // DO NOT COMMIT YET, MAYBE STASH
-    
-    let filter_raw = left.trim_start_matches("FILTER ").trim();
+    //the unwraps are wild - take care of them
+
+    // deletes FILTER, than the whitespaces
+    let filter_raw = left.trim_start_matches("FILTER ").trim(); 
     let eq_split = filter_raw.split_once("==").unwrap();
     let col = eq_split.0.trim();
     let raw = eq_split.1.trim();
 
+    // ' is used for chars
     let value = if raw.starts_with('"') && raw.ends_with('"') {
         Value::String(raw.trim_matches('"').to_string())
     } 
     else 
     {
+        // rust automatically knows to parse into an integer
         Value::Integer(raw.parse().unwrap())
     };
     let filter = Condition::Equal(col.to_string(), value);
 
+    
     let count_split = right.split_once(" COUNT ");
+    //avoids duplicating code (no value yet)
     let group_by;
     let aggregate;
 
