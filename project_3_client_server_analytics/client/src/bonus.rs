@@ -10,28 +10,36 @@ use client::{start_client, solution};
 // Your solution goes here.
 fn parse_query_from_string(input: String) -> Query {
     
-let ref_to_input = &input;
-let results = sql_query("FILTER section == "A1" GROUP BY grade COUNT name");
-return results;
+    let ref_to_input = &input;
+    let parts: Vec<&str> = ref_to_input.split_whitespace().collect();
+    .iter()
+    .filter(|word_or_sign| matches!(word_or_sign, &"FILTER" | 
+    &"GROUP" | &"BY" | &"COUNT" | &"AVERAGE" | &"AND" | &"OR" | &"!" ))
+    .collect::<Vec<_>>();
 
-//let parameters = querystring::querify(ref_to_input);
-//change the input into 3  parts - filter, group by, aggregation
-//I am using the query from query file
-
-//divide the string where spaces appear
-//iterate through the input, if element = filter make it a filter part, if group by than group by
-//if count or average then aggregation
-//from filter to group by (or other condition, it is filter's scope)
-
-// FILTER section == "A1" GROUP BY grade COUNT name
-// FILTER (section == "A1" OR section == "B1") GROUP BY section AVERAGE grade
-// FILTER (!(band == "Meshuggah") AND !(band == "Vildhjarta")) GROUP BY album AVERAGE rating
-
-//let query = analytics_lib::query::Query::new(...) good
+    
 
 
-   
+
+    
+    //change the input into 3  parts - filter, group by, aggregation
+    //I am using the query from query file
+
+    //divide the string where spaces appear
+    //iterate through the input, if element = filter make it a filter part, if group by than group by
+    //if count or average then aggregation
+    //from filter to group by (or other condition, it is filter's scope)
+
+    // FILTER section == "A1" GROUP BY grade COUNT name
+    // FILTER (section == "A1" OR section == "B1") GROUP BY section AVERAGE grade
+    // FILTER (!(band == "Meshuggah") AND !(band == "Vildhjarta")) GROUP BY album AVERAGE rating
+
+    let query = analytics_lib::query::Query::new(...);
+    return query;
+
+//  --------------------------------------------------------------IDEAS GREAVEYARD--------------------------------------------------------------
 // let query = Query::from(querified);
+//let parameters = querystring::querify(ref_to_input);
 //return query; good
 //
 //     let params = vec![("id", "123"), ("type", "admin")];
@@ -45,6 +53,7 @@ return results;
 //     println!("{}", query);
 
 // //
+//let results = sql_query("FILTER section == A1 GROUP BY grade COUNT name");
 
 
 }
