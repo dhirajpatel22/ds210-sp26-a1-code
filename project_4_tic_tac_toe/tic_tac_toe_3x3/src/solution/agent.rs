@@ -1,6 +1,6 @@
 use tic_tac_toe_stencil::agents::Agent;
 use tic_tac_toe_stencil::board::Board;
-use tic_tac_toe_stencil::player::Player::{self, X, O};
+use tic_tac_toe_stencil::player::Player::{self, O, X};
 
 // Your solution solution.
 pub struct SolutionAgent {}
@@ -14,21 +14,29 @@ impl Agent for SolutionAgent {
         // If you want to make a recursive call to this solution, use
         // `SolutionAgent::solve(...)`
         if board.game_over() {
-            return (board.score(), 0, 0); //is this correct way to return zero move?
+            return (board.score(), 0, 0);
         }
-        
+
         let moves = board.moves();
         let mut best_move: (usize, usize) = (0, 0);
-        let mut best_score: i32 = i32::MIN; //only for X
+        let mut best_score: i32 = match player {
+            X => i32::MIN,
+            O => i32::MAX,
+        };
 
         for possible_move in moves {
-            let mut test_board = board.clone();
-            test_board.apply_move(possible_move, player);
-            
-            let (future_score, _, _) = SolutionAgent::solve(&mut test_board, player, _time_limit);
+            board.apply_move(possible_move, player);
 
-            let better = future_score > best_score; //only for X
-            
+            let (future_score, _, _) =
+                SolutionAgent::solve(board, player.flip(), _time_limit);
+
+            board.undo_move(possible_move, player);
+
+            let better = match player {
+                X => future_score > best_score,
+                O => future_score < best_score,
+            };
+
             if better {
                 best_score = future_score;
                 best_move = possible_move;
