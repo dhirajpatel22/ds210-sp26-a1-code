@@ -25,7 +25,7 @@ impl Agent for SolutionAgent {
         };
 
         for possible_move in moves {
-            board.apply_move(possible_move, player);
+            board.apply_move(possible_move, player); //enter minimax here? 
 
             let (future_score, _, _) =
                 SolutionAgent::solve(board, player.flip(), _time_limit);
@@ -47,36 +47,44 @@ impl Agent for SolutionAgent {
     }
 }
 
-fn heuristic(board: &Board) -> Vec<i32> { 
-        let scores = board.score();
-        let mut vec_scores: Vec<i32> = Vec::new();
-        vec_scores.push(scores);
-        return vec_scores; //changed this from dhiraj
+fn heuristic(board: &Board) -> i32 { 
+    return board.score();
     }
 
-fn minimax(cur_depth: u8, nodeIndex: i32, maxTurn: bool, 
-        scores: i32, targetDepth: u8) -> i32 {
+fn minimax(curDepth: u8, nodeIndex: i32, maxTurn: bool, board: &Board, 
+        scores: i32, targetDepth: u8) -> i32 { 
+    //scores come from the heuristic function
+    // I hardcoded the target depth to 3, should it be dynamic? 
+
+    
+    //I need to turn scores to a vec to index into it
+    let mut scores_vec: Vec<i32> = Vec::new();
+    let targetDepth: u8 = (scores_vec.len() as f64).log2() as u8; //shouldnt it be hardcoded?
     
     if curDepth == targetDepth {
-        return scores[nodeIndex] //scores should be a vec to index into it 
+        return scores_vec[nodeIndex as usize]  
     }
+    //scores should be a vec to index into it, as usize
+    // push the heurtistic if base case? 
 
     if maxTurn {
-        return ((minimax(curDepth + 1,nodeIndex * 2, 
-                    false, scores, targetDepth )), 
-
-                   minimax(curDepth + 1, nodeIndex * 2 + 1,  
-                    false, scores, targetDepth )
-                ).max()
+        scores_vec.push(heuristic(board)); //??? 
+        return 
+            (minimax(curDepth + 1,nodeIndex * 2, 
+                    false, board,heuristic(board), targetDepth ))
+                    .max((minimax(curDepth + 1, nodeIndex * 2 + 1,  
+                    false, board,heuristic(board), targetDepth ))
+                    
+                   )
     }
     
     else {
-        return ((minimax(curDepth + 1, nodeIndex * 2,  
-                     true, scores, targetDepth )), 
-
-                   minimax(curDepth + 1, nodeIndex * 2 + 1, 
-                          true, scores, targetDepth)
-                ).min()
+        scores_vec.push(heuristic(board)); //???
+        return (minimax(curDepth + 1, nodeIndex * 2,  
+                     true, board,heuristic(board), targetDepth ))
+                     .min((minimax(curDepth + 1, nodeIndex * 2 + 1, 
+                    true, board,heuristic(board), targetDepth ))
+                )
     }
 }
     // heuristic(board);?
