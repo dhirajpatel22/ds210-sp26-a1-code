@@ -47,6 +47,38 @@ impl Agent for SolutionAgent {
     }
 }
 
-fn heuristic(board: &Board) -> i32 {
-        return board.score()
+fn heuristic(board: &Board) -> Vec<i32> {
+        let scores = board.score();
+        let mut vec_scores: Vec<i32> = Vec::new();
+        let vec_scores = vec_scores.push(scores);
+        return vec_scores; //changed this from dhiraj
     }
+
+fn minimax(cur_depth: u8, nodeIndex: i32, maxTurn: bool, 
+        scores: i32, targetDepth: u8) -> i32 {
+    
+    if curDepth == targetDepth {
+        return scores[nodeIndex] //scores should be a vec to index into it 
+    }
+
+    if maxTurn {
+        return ((minimax(curDepth + 1,nodeIndex * 2, 
+                    false, scores, targetDepth )), 
+
+                   minimax(curDepth + 1, nodeIndex * 2 + 1,  
+                    false, scores, targetDepth )
+                ).max()
+    }
+    
+    else {
+        return ((minimax(curDepth + 1, nodeIndex * 2,  
+                     true, scores, targetDepth )), 
+
+                   minimax(curDepth + 1, nodeIndex * 2 + 1, 
+                          true, scores, targetDepth)
+                ).min()
+    }
+}
+    // heuristic(board);?
+    //missing max turn
+    //needs heuristic to run
