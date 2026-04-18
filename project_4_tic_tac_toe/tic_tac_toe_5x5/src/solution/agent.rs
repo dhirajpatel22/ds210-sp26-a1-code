@@ -17,7 +17,7 @@ impl Agent for SolutionAgent {
             return (board.score(), 0, 0);
         }
 
-        const MAX_DEPTH: u8 = 4;
+        const MAX_DEPTH: u8 = 5; //needs to be 5, 4 loses with radom 3x3
 
         let moves = board.moves();
         let mut best_move: (usize, usize) = (0, 0);
