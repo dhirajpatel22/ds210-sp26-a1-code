@@ -17,6 +17,8 @@ impl Agent for SolutionAgent {
             return (board.score(), 0, 0);
         }
 
+        const MAX_DEPTH: u8 = 4;
+
         let moves = board.moves();
         let mut best_move: (usize, usize) = (0, 0);
         let mut best_score: i32 = match player {
@@ -25,10 +27,9 @@ impl Agent for SolutionAgent {
         };
 
         for possible_move in moves {
-            board.apply_move(possible_move, player); //enter minimax here? 
+            board.apply_move(possible_move, player);
 
-            let (future_score, _, _) =
-                SolutionAgent::solve(board, player.flip(), _time_limit);
+            let future_score = minimax_with_depth(board, player.flip(), 1, MAX_DEPTH);
 
             board.undo_move(possible_move, player);
 
@@ -49,44 +50,33 @@ impl Agent for SolutionAgent {
 
 fn heuristic(board: &Board) -> i32 { 
     return board.score();
-    }
-
-fn minimax(curDepth: u8, nodeIndex: i32, maxTurn: bool, board: &Board, 
-        scores: i32, targetDepth: u8) -> i32 { 
-    //scores come from the heuristic function
-    // I hardcoded the target depth to 3, should it be dynamic? 
-
-    
-    //I need to turn scores to a vec to index into it
-    let mut scores_vec: Vec<i32> = Vec::new();
-    let targetDepth: u8 = (scores_vec.len() as f64).log2() as u8; //shouldnt it be hardcoded?
-    
-    if curDepth == targetDepth {
-        return scores_vec[nodeIndex as usize]  
-    }
-    //scores should be a vec to index into it, as usize
-    // push the heurtistic if base case? 
-
-    if maxTurn {
-        scores_vec.push(heuristic(board)); //??? 
-        return 
-            (minimax(curDepth + 1,nodeIndex * 2, 
-                    false, board,heuristic(board), targetDepth ))
-                    .max((minimax(curDepth + 1, nodeIndex * 2 + 1,  
-                    false, board,heuristic(board), targetDepth ))
-                    
-                   )
-    }
-    
-    else {
-        scores_vec.push(heuristic(board)); //???
-        return (minimax(curDepth + 1, nodeIndex * 2,  
-                     true, board,heuristic(board), targetDepth ))
-                     .min((minimax(curDepth + 1, nodeIndex * 2 + 1, 
-                    true, board,heuristic(board), targetDepth ))
-                )
-    }
 }
-    // heuristic(board);?
-    //missing max turn
-    //needs heuristic to run
+
+fn minimax_with_depth(board: &mut Board, player: Player, cur_depth: u8, max_depth: u8) -> i32 {
+    if board.game_over() {
+        return board.score();
+    }
+
+    if cur_depth >= max_depth {
+        return heuristic(board);
+    }
+
+    let moves = board.moves();
+    let mut best_score = match player {
+        X => i32::MIN,
+        O => i32::MAX,
+    };
+
+    for possible_move in moves {
+        board.apply_move(possible_move, player);
+        let future_score = minimax_with_depth(board, player.flip(), cur_depth + 1, max_depth);
+        board.undo_move(possible_move, player);
+
+        best_score = match player {
+            X => best_score.max(future_score),
+            O => best_score.min(future_score),
+        };
+    }
+
+    best_score
+}
