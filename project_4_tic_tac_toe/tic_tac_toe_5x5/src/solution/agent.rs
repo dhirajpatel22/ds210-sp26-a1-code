@@ -1,6 +1,6 @@
 use tic_tac_toe_stencil::agents::Agent;
 use tic_tac_toe_stencil::board::Board;
-use tic_tac_toe_stencil::player::Player::{self, O, X}; //also added this
+use tic_tac_toe_stencil::player::Player::{self, O, X};
 
 // Your solution solution.
 pub struct SolutionAgent {}
@@ -47,4 +47,6 @@ impl Agent for SolutionAgent {
     }
 }
 
-//is time limit even used? does this varaivble name come up anywhere else? 
+fn heuristic(board: &Board) -> i32 {
+        return board.score()
+    }
