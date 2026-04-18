@@ -47,10 +47,10 @@ impl Agent for SolutionAgent {
     }
 }
 
-fn heuristic(board: &Board) -> Vec<i32> {
+fn heuristic(board: &Board) -> Vec<i32> { 
         let scores = board.score();
         let mut vec_scores: Vec<i32> = Vec::new();
-        let vec_scores = vec_scores.push(scores);
+        vec_scores.push(scores);
         return vec_scores; //changed this from dhiraj
     }
 
