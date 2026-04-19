@@ -105,7 +105,7 @@ fn heuristic(board: &Board) -> i32 {
         }
     }
 
-    // Rows and columns.
+    // iterate over rows and columns & update estimate
     for i in 0..n {
         for j in 0..=(n - 3) {
             estimate += eval_window(&cells[i][j], &cells[i][j + 1], &cells[i][j + 2]);
@@ -113,7 +113,7 @@ fn heuristic(board: &Board) -> i32 {
         }
     }
 
-    // Diagonals.
+    // iterate over diagonals & update estimate
     for i in 0..=(n - 3) {
         for j in 0..=(n - 3) {
             estimate += eval_window(&cells[i][j], &cells[i + 1][j + 1], &cells[i + 2][j + 2]);
