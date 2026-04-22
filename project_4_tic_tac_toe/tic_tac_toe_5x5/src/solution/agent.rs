@@ -20,11 +20,10 @@ impl Agent for SolutionAgent {
         let moves = board.moves();
         let move_count = moves.len();
 
-        // make max_depth dynamic depending on how number of moves changes
-        // TO DHIRAJ - I think we can increase depoth more and make it more detailed
-        //use time limit here - intrduce the notion of time left: time_limit - time spent so far, and adjust max_depth accordingly
+        let max_depth: u8 = if move_count <= 9 {
+            u8::MAX // 3x3 exhaustive search which guarantees optimal play
 
-        let max_depth: u8 = if move_count >= 17 {
+        } else if move_count >= 17 {
             6
         } else if move_count >= 12 {
             7
