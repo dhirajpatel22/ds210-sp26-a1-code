@@ -10,7 +10,7 @@ impl Agent for SolutionAgent {
     // Should returns (<score>, <x>, <y>)
     // where <score> is your estimate for the score of the game
     // and <x>, <y> are the position of the move your solution will make.
-    fn solve(board: &mut Board, player: Player, _time_limit: u64) -> (i32, usize, usize) {
+    fn solve(board: &mut Board, player: Player, time_limit: u64) -> (i32, usize, usize) {
         // If you want to make a recursive call to this solution, use
         // `SolutionAgent::solve(...)`
         if board.game_over() {
@@ -21,13 +21,15 @@ impl Agent for SolutionAgent {
         let move_count = moves.len();
 
         // make max_depth dynamic depending on how number of moves changes
-        // TO DHIRAJ - are u sure this ir right? maybe we should increase it. 
+        // TO DHIRAJ - I think we can increase depoth more and make it more detailed
+        //use time limit here - intrduce the notion of time left: time_limit - time spent so far, and adjust max_depth accordingly
+
         let max_depth: u8 = if move_count >= 17 {
-            3
-        } else if move_count >= 12 {
             4
-        } else {
+        } else if move_count >= 12 {
             5
+        } else {
+            6
         };
 
         // Order candidates with a one-ply heuristic so we search promising moves first.
@@ -47,12 +49,12 @@ impl Agent for SolutionAgent {
 
         // trim branches in cases where move_count is high
         //TO DHIRAJ - this might be highly inefficient - consider substituting with alpha-beta
-        let candidate_count: usize = if move_count >= 20 { //if move_count >= 20, only keep top 8
-            8
+        let candidate_count: usize = if move_count >= 20 {
+            6
         } else if move_count >= 16 {
-            10
+            8
         } else if move_count >= 12 {
-            12
+            10
         } else {
             move_count
         };
@@ -90,7 +92,7 @@ fn heuristic(board: &Board) -> i32 {
     let cells = board.get_cells();
     let n = cells.len();
 
-    let mut estimate = board.score() * 100;
+    let mut estimate = board.score(); //100->1000 to prioritize winning/losing moves over heuristic evaluation of non-winning moves
 
     // TO DHIRAJ - maybe increase the window when there are more moves left or just better running time?
     fn eval_window(a: &Cell, b: &Cell, c: &Cell) -> i32 {
@@ -131,7 +133,7 @@ fn heuristic(board: &Board) -> i32 {
 
 fn minimax_with_depth(board: &mut Board, player: Player, cur_depth: u8, max_depth: u8) -> i32 {
     if board.game_over() {
-        return board.score();
+        return board.score() *1000; //prioritize winning/losing moves over heuristic evaluation of non-winning moves
     }
 
     if cur_depth >= max_depth {
