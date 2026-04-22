@@ -25,11 +25,11 @@ impl Agent for SolutionAgent {
         //use time limit here - intrduce the notion of time left: time_limit - time spent so far, and adjust max_depth accordingly
 
         let max_depth: u8 = if move_count >= 17 {
-            4
-        } else if move_count >= 12 {
-            5
-        } else {
             6
+        } else if move_count >= 12 {
+            7
+        } else {
+            8
         };
 
         // Order candidates with a one-ply heuristic so we search promising moves first.
@@ -47,29 +47,21 @@ impl Agent for SolutionAgent {
             O => a.0.cmp(&b.0), //sort ascending for O
         });
 
-        // trim branches in cases where move_count is high
-        //TO DHIRAJ - this might be highly inefficient - consider substituting with alpha-beta
-        let candidate_count: usize = if move_count >= 20 {
-            6
-        } else if move_count >= 16 {
-            8
-        } else if move_count >= 12 {
-            10
-        } else {
-            move_count
-        };
-
         //initialize best_move & best_score
         let mut best_move: (usize, usize) = (0, 0);
         let mut best_score: i32 = match player {
             X => i32::MIN,
             O => i32::MAX,
         };
-        
-        for (_, possible_move) in ordered_moves.into_iter().take(candidate_count) { //loop through best candiate moves
+
+        // alpha-beta window at the top level
+        let mut alpha = i32::MIN;
+        let mut beta = i32::MAX;
+
+        for (_, possible_move) in ordered_moves.into_iter() { //loop through all moves (ordered by heuristic)
             board.apply_move(possible_move, player); //temporarily make the move
 
-            let future_score = minimax_with_depth(board, player.flip(), 1, max_depth); //recursively evaluate move
+            let future_score = alphabeta(board, player.flip(), 1, max_depth, alpha, beta); //alpha-beta search
 
             board.undo_move(possible_move, player); //undo the move
 
@@ -81,6 +73,12 @@ impl Agent for SolutionAgent {
             if better {
                 best_score = future_score;
                 best_move = possible_move;
+            }
+
+            // narrow the window at the top level
+            match player {
+                X => alpha = alpha.max(best_score),
+                O => beta = beta.min(best_score),
             }
         }
 
@@ -131,9 +129,9 @@ fn heuristic(board: &Board) -> i32 {
     estimate
 }
 
-fn minimax_with_depth(board: &mut Board, player: Player, cur_depth: u8, max_depth: u8) -> i32 {
+fn alphabeta(board: &mut Board, player: Player, cur_depth: u8, max_depth: u8, mut alpha: i32, mut beta: i32) -> i32 {
     if board.game_over() {
-        return board.score() *1000; //prioritize winning/losing moves over heuristic evaluation of non-winning moves
+        return board.score() * 1000;
     }
 
     if cur_depth >= max_depth {
@@ -141,21 +139,35 @@ fn minimax_with_depth(board: &mut Board, player: Player, cur_depth: u8, max_dept
     }
 
     let moves = board.moves();
-    let mut best_score = match player {
-        X => i32::MIN,
-        O => i32::MAX,
-    };
 
-    for possible_move in moves {
-        board.apply_move(possible_move, player);
-        let future_score = minimax_with_depth(board, player.flip(), cur_depth + 1, max_depth);
-        board.undo_move(possible_move, player);
-
-        best_score = match player {
-            X => best_score.max(future_score),
-            O => best_score.min(future_score),
-        };
+    match player {
+        X => {
+            let mut best = i32::MIN;
+            for m in moves {
+                board.apply_move(m, player);
+                let score = alphabeta(board, player.flip(), cur_depth + 1, max_depth, alpha, beta);
+                board.undo_move(m, player);
+                best = best.max(score);
+                alpha = alpha.max(best);
+                if beta <= alpha {
+                    break; // beta cutoff
+                }
+            }
+            best
+        }
+        O => {
+            let mut best = i32::MAX;
+            for m in moves {
+                board.apply_move(m, player);
+                let score = alphabeta(board, player.flip(), cur_depth + 1, max_depth, alpha, beta);
+                board.undo_move(m, player);
+                best = best.min(score);
+                beta = beta.min(best);
+                if beta <= alpha {
+                    break; // alpha cutoff
+                }
+            }
+            best
+        }
     }
-
-    best_score
 }
