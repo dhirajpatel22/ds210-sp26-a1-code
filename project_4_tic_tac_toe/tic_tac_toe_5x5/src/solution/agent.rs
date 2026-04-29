@@ -106,7 +106,7 @@ impl State {
  let zobrist = build_zobrist(n);
  let mut turn_seed = 0x9E37_79B9_7F4A_7C15u64 ^ n as u64;
  let turn_key = splitmix64(&mut turn_seed);
- let mut hash = 0;
+ let mut hash = 0u64;
  for idx in 0..cells.len() {
  hash ^= zobrist[idx][cells[idx] as usize];
  }
@@ -291,8 +291,8 @@ impl State {
  found_stone = true;
  let row = idx / self.n;
  let col = idx % self.n;
- for delta_row in -1..=1 {
- for delta_col in -1..=1 {
+ for delta_row in -1i32..=1 {
+ for delta_col in -1i32..=1 {
  let new_row = row as i32 + delta_row;
  let new_col = col as i32 + delta_col;
  if new_row < 0 || new_col < 0 || new_row >= self.n as i32 || new_col >= self.n as i32 {
