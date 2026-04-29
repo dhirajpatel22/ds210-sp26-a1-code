@@ -13,7 +13,7 @@ const C_WALL: u8 = 3;
 const SIDE_X: i32 = 1;
 const SIDE_O: i32 = -1;
 
-const TIME_MARGIN_MS: u64 = 120;
+const TIME_MARGIN_MS: u64 = 20;
 
 const TERMINAL_SCALE: i32 = 1000000;
 
