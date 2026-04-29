@@ -106,7 +106,7 @@ impl State {
  let zobrist = build_zobrist(n);
  let mut turn_seed = 0x9E37_79B9_7F4A_7C15u64 ^ n as u64;
  let turn_key = splitmix64(&mut turn_seed);
- let mut hash = 0u64;
+ let mut hash = 0;
  for idx in 0..cells.len() {
  hash ^= zobrist[idx][cells[idx] as usize];
  }
