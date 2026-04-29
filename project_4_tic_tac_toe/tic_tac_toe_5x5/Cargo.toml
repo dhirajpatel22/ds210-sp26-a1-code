@@ -7,6 +7,10 @@ edition = "2024"
 name = "main"
 path = "src/main.rs"
 
+[[bin]]
+name = "duel"
+path = "src/bin/duel.rs"
+
 [dependencies]
 tic_tac_toe_stencil = { path = "../tic_tac_toe_stencil" }
 clap = { version = "4.5.8", features = ["derive"] }

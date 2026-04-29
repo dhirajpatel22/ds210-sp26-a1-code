@@ -34,9 +34,9 @@ struct TTEntry {
  bound: TTBound,
 }
 
-pub struct SolutionAgent {}
+pub struct OldSolutionAgent {}
 
-impl Agent for SolutionAgent {
+impl Agent for OldSolutionAgent {
  fn solve(board: &mut Board, player: Player, time_limit: u64) -> (i32, usize, usize) {
  if board.game_over() {
  return (board.score(), 0, 0);
@@ -479,32 +479,6 @@ impl State {
  if let Some(pos) = moves.iter().position(|&m| m == entry.best_move) {
  moves.swap(0, pos);
  }
- }
-
- // Static heuristic-delta re-ranking for tactical depth.
- // At deep enough nodes with enough moves it pays to apply/eval/undo
- // each candidate and order by the resulting static heuristic.
- // Cost: O(moves * lines). Benefit: typically 10-30% fewer nodes
- // searched because alpha cuts kick in earlier.
- //
- // We skip the very first move (it's already the TT/PV best) and only
- // re-rank the tail. We also gate on depth >= 3 so that the leaf-level
- // overhead doesn't dominate.
- if moves.len() > 4 && depth >= 3 {
- let head = moves[0];
- let tail = &mut moves[1..];
- let mut scored: Vec<(i32, u16)> = Vec::with_capacity(tail.len());
- for &m in tail.iter() {
- self.apply(m as usize, side);
- let s = self.heuristic() * side;
- self.undo(m as usize, side);
- scored.push((s, m));
- }
- scored.sort_by(|a, b| b.0.cmp(&a.0));
- for (i, (_, m)) in scored.into_iter().enumerate() {
- tail[i] = m;
- }
- moves[0] = head;
  }
 
  let mut best: i32 = -i32::MAX / 2;
